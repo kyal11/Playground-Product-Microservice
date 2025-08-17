@@ -20,6 +20,12 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findAllByDeletedAtIsNull();
 
+    @Query("SELECT c FROM Category c LEFT JOIN FETCH c.subCategories WHERE c.id = :id")
+    Optional<Category> findByIdWithSubCategories(Long id);
+
+    @Query("SELECT DISTINCT c FROM Category c LEFT JOIN FETCH c.subCategories")
+    List<Category> findAllWithSubCategories();
+
     Category save(Category category);
 
     @Modifying

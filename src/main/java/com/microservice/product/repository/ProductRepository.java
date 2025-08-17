@@ -23,9 +23,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findBySubCategoryId(Long id);
 
-    List<Product> findByCategoryName(String name);
+    @Query("SELECT p FROM Product p JOIN p.subCategory sc JOIN sc.category c WHERE c.id = :categoryId")
+    List<Product> findByCategoryName(String categoryId);
 
-    List<Product> findBySubCategoryName(String name);
+    @Query("SELECT p FROM Product p JOIN p.subCategory sc JOIN sc.category c WHERE c.name = :categoryName")
+    List<Product> findBySubCategoryName(String categoryName);
 
     Product save(Product product);
 
