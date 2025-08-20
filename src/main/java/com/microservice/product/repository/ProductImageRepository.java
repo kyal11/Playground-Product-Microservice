@@ -12,25 +12,15 @@ import java.util.Optional;
 public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
     Optional<ProductImage> findById(Long id);
 
-    Optional<ProductImage> findByName(String name);
-
     List<ProductImage> findAll();
 
     List<ProductImage> findAllByDeletedAtIsNull();
 
-    List<ProductImage> findByProductid(Long id);
-
-    Category save(ProductImage image);
+    ProductImage save(ProductImage image);
 
     @Modifying
     @Query("UPDATE ProductImage u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
     void softDeleteById(Long id);
 
-    @Modifying
-    @Query("UPDATE ProductImage u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.name = :name")
-    void softDeleteByName(String name);
-
-    void deletedById(Long id);
-
-    void deletedByName(String name);
+    void deleteById(Long id);
 }

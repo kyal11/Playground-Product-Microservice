@@ -23,7 +23,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.subCategories WHERE c.id = :id AND c.deletedAt IS NULL")
     Optional<Category> findByIdWithSubCategories(Long id);
 
-    @Query("SELECT DISTINCT c FROM Category c LEFT JOIN FETCH c.subCategories AND c.deletedAt IS NULL")
+    @Query("SELECT DISTINCT c FROM Category c LEFT JOIN FETCH c.subCategories WHERE c.deletedAt IS NULL")
     List<Category> findAllWithSubCategories();
 
     Category save(Category category);
@@ -36,7 +36,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("UPDATE Category u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.name = :name")
     void softDeleteByName(String name);
 
-    void deletedById(Long id);
+    void deleteById(Long id);
 
-    void deletedByName(String name);
+    void deleteByName(String name);
 }

@@ -29,7 +29,7 @@ public interface SubCategoryRepository extends JpaRepository<SubCategory, Long> 
     @Query("UPDATE SubCategory u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.name = :name")
     void softDeleteByName(String name);
 
-    void deletedById(Long id);
+    void deleteById(Long id);
 
-    void deletedByName(String name);
+    void deleteByName(String name);
 }

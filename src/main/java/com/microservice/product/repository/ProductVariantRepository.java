@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
     Optional<ProductVariant> findById(Long id);
 
-    Optional<ProductVariant> findByName(String name);
+    Optional<ProductVariant> findByVariantName(String name);
 
     List<ProductVariant> findAll();
 
@@ -23,17 +23,15 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     List<ProductVariant> findByProductId(Long id);
 
-    Category save(ProductVariant video);
+    ProductVariant save(ProductVariant video);
 
     @Modifying
     @Query("UPDATE ProductVariant u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
     void softDeleteById(Long id);
 
     @Modifying
-    @Query("UPDATE ProductVariant u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.name = :name")
-    void softDeleteByName(String name);
+    @Query("UPDATE ProductVariant u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.variantName = :name")
+    void softDeleteByVariantName(String name);
 
-    void deletedById(Long id);
-
-    void deletedByName(String name);
+    void deleteById(Long id);
 }

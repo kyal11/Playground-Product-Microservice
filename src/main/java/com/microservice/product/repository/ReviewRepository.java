@@ -15,23 +15,15 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Review> findById(Long id);
 
-    Optional<Review> findByName(String name);
-
     List<Review> findAll();
 
     List<Review> findAllByDeletedAtIsNull();
 
-    Category save(Review video);
+    Review save(Review review);
 
     @Modifying
     @Query("UPDATE Review u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
     void softDeleteById(Long id);
 
-    @Modifying
-    @Query("UPDATE Review u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.name = :name")
-    void softDeleteByName(String name);
-
-    void deletedById(Long id);
-
-    void deletedByName(String name);
+    void deleteById(Long id);
 }

@@ -6,10 +6,12 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
 
+@Service
 public class JwtService {
     private final JwtConfig jwtConfig;
     private SecretKey secretKey;

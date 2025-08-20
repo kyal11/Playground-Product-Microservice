@@ -15,23 +15,15 @@ import java.util.Optional;
 public interface ProductVideoRepository extends JpaRepository<ProductVideo, Long> {
     Optional<ProductVideo> findById(Long id);
 
-    Optional<ProductVideo> findByName(String name);
-
     List<ProductVideo> findAll();
 
     List<ProductVideo> findAllByDeletedAtIsNull();
 
-    Category save(ProductVideo video);
+    ProductVideo save(ProductVideo video);
 
     @Modifying
     @Query("UPDATE ProductVideo u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
     void softDeleteById(Long id);
 
-    @Modifying
-    @Query("UPDATE ProductVideo u SET u.deletedAt = CURRENT_TIMESTAMP WHERE u.name = :name")
-    void softDeleteByName(String name);
-
-    void deletedById(Long id);
-
-    void deletedByName(String name);
+    void deleteById(Long id);
 }
