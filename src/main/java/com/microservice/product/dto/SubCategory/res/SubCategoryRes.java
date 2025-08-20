@@ -10,4 +10,7 @@ public class SubCategoryRes {
     private String name;
     private Instant created_at;
     private Instant updated_at;
+
+    private Long category_id;
+    private String category_name;
 }
