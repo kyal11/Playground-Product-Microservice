@@ -1,11 +1,13 @@
 package com.microservice.product.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.Instant;
 import java.util.List;
 
 @Entity
+@Data
 @Table(name = "sub_categories")
 public class Product {
     @Id
