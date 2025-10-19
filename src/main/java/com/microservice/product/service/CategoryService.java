@@ -12,6 +12,8 @@ import com.microservice.product.entity.SubCategory;
 import com.microservice.product.repository.CategoryRepository;
 import com.microservice.product.repository.SubCategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
 
+    @Cacheable(value = "categories")
     public ApiResponse<List<CategoryRes>> getAllCategory() {
         List<CategoryRes> categories = categoryRepository.findAllWithSubCategories().stream()
                 .map(this::mapToCategoryRes)
@@ -33,6 +36,7 @@ public class CategoryService {
         return new ApiResponse<>(true, "Success get data category!", categories);
     }
 
+    @Cacheable(value = "subCategories")
     public ApiResponse<List<SubCategoryRes>> getSubCategory() {
         List<SubCategoryRes> subCategories = subCategoryRepository.findAll().stream()
                 .map(this::mapToSubCategoryRes)
@@ -55,6 +59,7 @@ public class CategoryService {
         return new ApiResponse<>(true, "Success get data subCategory !", mapToSubCategoryRes(subCategory));
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     public ApiResponse<CategoryRes> createCategory(CreateCategoryReq dto) {
         Category dataCategory = new Category();
         dataCategory.setName(dto.getName());
@@ -64,6 +69,7 @@ public class CategoryService {
         return new ApiResponse<>(true, "Success Create Category", mapToCategoryRes(category));
     }
 
+    @CacheEvict(value = "subCategories", allEntries = true)
     public ApiResponse<SubCategoryRes> createSubCategory(CreateSCategoryReq dto) {
         Category category = categoryRepository.findById(dto.getCategory_id())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found for subcategory creation"));
