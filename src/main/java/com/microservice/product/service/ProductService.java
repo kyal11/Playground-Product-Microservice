@@ -2,10 +2,12 @@ package com.microservice.product.service;
 
 import com.microservice.product.dto.ApiResponse;
 import com.microservice.product.dto.product.req.CreateProductReq;
+import com.microservice.product.dto.product.req.CreateVariantProductReq;
 import com.microservice.product.dto.product.req.SearchProductReq;
 import com.microservice.product.dto.product.req.UpdateProductReq;
 import com.microservice.product.dto.product.res.ProductRes;
 import com.microservice.product.entity.Product;
+import com.microservice.product.entity.ProductVariant;
 import com.microservice.product.entity.SubCategory;
 import com.microservice.product.repository.ProductRepository;
 import com.microservice.product.repository.SubCategoryRepository;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +53,8 @@ public class ProductService {
         SubCategory subCategory = subCategoryRepository.findById(dto.getSubCategoryId())
                 .orElseThrow(() -> new RuntimeException("SubCategory not found"));
 
+        boolean hasVariant = Boolean.TRUE.equals(dto.getHasVariant());
+
         Product product = new Product();
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
@@ -58,6 +63,26 @@ public class ProductService {
         product.setHasVariant(dto.getHasVariant());
         product.setSubCategory(subCategory);
         product.setCreatedAt(Instant.now());
+
+        if (hasVariant) {
+            List<CreateVariantProductReq> variants = dto.getVariantProducts();
+
+            if (variants == null || variants.isEmpty()) {
+                throw new IllegalArgumentException("Variant products must be provided when hasVariant is true");
+            }
+
+            List<ProductVariant> productVariants = variants.stream()
+                    .map(v -> {
+                        ProductVariant variant = new ProductVariant();
+                        variant.setVariantName(v.getVariantName());
+                        variant.setPrice(v.getPrice());
+                        variant.setStock(v.getStock());
+                        variant.setProduct(product);
+                        return variant;
+                    }).toList();
+
+            product.setVariants(productVariants);
+        }
 
         Product savedProduct = productRepository.save(product);
         return new ApiResponse<>(true, "Product created successfully", mapToProductRes(savedProduct));
