@@ -27,22 +27,47 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
 
-    @Cacheable(value = "categories")
+    private final RedisService redisService;
+
+    private static final String CATEGORY_CACHE_KEY = "categories:all";
+    private static final String SUBCATEGORY_CACHE_KEY = "subcategories:all";
+
     public ApiResponse<List<CategoryRes>> getAllCategory() {
+
+        ApiResponse<List<CategoryRes>> cached = redisService.get(CATEGORY_CACHE_KEY, ApiResponse.class);
+
+        if (cached != null) {
+            cached.setMessage("Success get data category (from cache)!");
+            return cached;
+        }
+
         List<CategoryRes> categories = categoryRepository.findAllWithSubCategories().stream()
                 .map(this::mapToCategoryRes)
                 .toList();
 
-        return new ApiResponse<>(true, "Success get data category!", categories);
+        ApiResponse<List<CategoryRes>> response = new ApiResponse<>(true, "Success get data category!", categories);
+
+        redisService.save(CATEGORY_CACHE_KEY, response, 7200);
+
+        return response;
     }
 
-    @Cacheable(value = "subCategories")
     public ApiResponse<List<SubCategoryRes>> getSubCategory() {
+        ApiResponse<List<SubCategoryRes>> cached = redisService.get(SUBCATEGORY_CACHE_KEY, ApiResponse.class);
+
+        if (cached != null) {
+            cached.setMessage("Success get data sub category (from cache)!");
+            return cached;
+        }
+
         List<SubCategoryRes> subCategories = subCategoryRepository.findAll().stream()
                 .map(this::mapToSubCategoryRes)
                 .toList();
 
-        return new ApiResponse<>(true, "Success get data sub category!!", subCategories);
+        ApiResponse<List<SubCategoryRes>> response = new ApiResponse<>(true, "Success get data sub category!", subCategories);
+        redisService.save(SUBCATEGORY_CACHE_KEY, response, 3600);
+
+        return response;
     }
 
     public ApiResponse<CategoryRes> getCategoryById(Long id) {
@@ -56,20 +81,21 @@ public class CategoryService {
         SubCategory subCategory = subCategoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category Not Found!"));
 
-        return new ApiResponse<>(true, "Success get data subCategory !", mapToSubCategoryRes(subCategory));
+        return new ApiResponse<>(true, "Success get data subCategory!", mapToSubCategoryRes(subCategory));
     }
 
-    @CacheEvict(value = "categories", allEntries = true)
     public ApiResponse<CategoryRes> createCategory(CreateCategoryReq dto) {
         Category dataCategory = new Category();
         dataCategory.setName(dto.getName());
         dataCategory.setDescription(dto.getDescription());
         Category category = categoryRepository.save(dataCategory);
 
+        redisService.delete(CATEGORY_CACHE_KEY);
+        redisService.delete(SUBCATEGORY_CACHE_KEY);
+
         return new ApiResponse<>(true, "Success Create Category", mapToCategoryRes(category));
     }
 
-    @CacheEvict(value = "subCategories", allEntries = true)
     public ApiResponse<SubCategoryRes> createSubCategory(CreateSCategoryReq dto) {
         Category category = categoryRepository.findById(dto.getCategory_id())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found for subcategory creation"));
@@ -78,6 +104,8 @@ public class CategoryService {
         dataSubCategory.setName(dto.getName());
         dataSubCategory.setCategory(category);
         SubCategory subCategory = subCategoryRepository.save(dataSubCategory);
+
+        redisService.delete(SUBCATEGORY_CACHE_KEY);
 
         return new ApiResponse<>(true, "Success Create Category", mapToSubCategoryRes(subCategory));
     }
@@ -101,6 +129,9 @@ public class CategoryService {
         }
         Category savedCategory = categoryRepository.save(category);
 
+        redisService.delete(CATEGORY_CACHE_KEY);
+        redisService.delete(SUBCATEGORY_CACHE_KEY);
+
         return new ApiResponse<>(true, "Success create data category!", mapToCategoryRes(savedCategory));
     };
     public ApiResponse<CategoryRes> updateCategory(UpdateCategoryReq dto) {
@@ -111,6 +142,9 @@ public class CategoryService {
         category.setDescription(dto.getDescription());
 
         Category updated = categoryRepository.save(category);
+
+        redisService.delete(CATEGORY_CACHE_KEY);
+
         return new ApiResponse<>(true, "Category updated successfully", mapToCategoryRes(updated));
     }
 
@@ -121,12 +155,18 @@ public class CategoryService {
         subCategory.setName(dto.getName());
 
         SubCategory updated = subCategoryRepository.save(subCategory);
+        redisService.delete(SUBCATEGORY_CACHE_KEY);
+
         return new ApiResponse<>(true, "SubCategory updated successfully", mapToSubCategoryRes(updated));
     }
 
     @Transactional
     public ApiResponse<Void> softDeleteCategoryById(Long id) {
         categoryRepository.softDeleteById(id);
+
+        redisService.delete(CATEGORY_CACHE_KEY);
+        redisService.delete(SUBCATEGORY_CACHE_KEY);
+
         return new ApiResponse<>(true, "Category deleted successfully", null);
     }
 
